@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">US Stock Market Seasonal Guide & Sentiment Memo</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light grey-blue background */
+            color: #334155; /* Dark slate text */
+        }
+        .container {
+            max-width: 1024px; /* Max width for content */
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px; /* More rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .month-card {
+            background-color: #f8fafc; /* Lighter background for month cards */
+            border: 1px solid #e2e8f0; /* Subtle border */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .month-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+        .positive-trend {
+            color: #10b981; /* Green for positive */
+            font-weight: 600;
+        }
+        .negative-trend {
+            color: #ef4444; /* Red for negative */
+            font-weight: 600;
+        }
+        .mixed-trend {
+            color: #f59e0b; /* Amber for mixed */
+            font-weight: 600;
+        }
+        .best-month {
+            border: 2px solid #10b981; /* Green border for best month */
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.2); /* Green shadow */
+        }
+        .worst-month {
+            border: 2px solid #ef4444; /* Red border for worst month */
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.2); /* Red shadow */
+        }
+        .current-month {
+            background-color: #e0f2fe; /* Light blue background for current month */
+            border: 2px solid #3b82f6; /* Blue border */
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2); /* Blue shadow */
+        }
+
+        /* Chart specific styles */
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin-top: 20px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+            overflow: hidden; /* Ensure bars don't overflow */
+        }
+        .bar {
+            fill: #3b82f6; /* Blue bars */
+            transition: fill 0.3s ease-in-out;
+        }
+        .bar.positive {
+            fill: #10b981; /* Green for positive returns */
+        }
+        .bar.negative {
+            fill: #ef4444; /* Red for negative returns */
+        }
+        .bar-label {
+            font-size: 10px;
+            fill: #334155;
+            text-anchor: middle;
+        }
+        .axis-label {
+            font-size: 10px;
+            fill: #64748b;
+        }
+        .language-buttons {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .lang-button {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background-color: #cbd5e1;
+            color: #334155;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .lang-button.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+        .lang-button:hover:not(.active) {
+            background-color: #a0aec0;
+        }
+        /* Removed iframe-related styles as the iframe is no longer present */
+    </style>
+</head>
+<body class="p-4 sm:p-8 relative">
+    <div class="language-buttons">
+        <button id="lang-en" class="lang-button active">English</button>
+        <button id="lang-zh" class="lang-button">中文</button>
+    </div>
+
+    <div class="container mx-auto">
+        <!-- Header Section -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2" id="headerTitle" data-lang-key="headerTitle">US Stock Market Seasonal Memo</h1>
+            <p class="text-lg text-gray-600" id="headerSubtitle" data-lang-key="headerSubtitle">A personal reference for general monthly market trends and sentiment.</p>
+        </header>
+
+        <!-- Current Market Emotion Section -->
+        <section class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4" id="sentimentHeader" data-lang-key="sentimentHeader">Current Market Sentiment Indicator</h2>
+            <p class="text-lg text-gray-700 mb-2" id="sentimentText" data-lang-key="sentimentText">For the latest CNN Fear & Greed Index, please visit:</p>
+            <a href="https://www.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-lg font-medium" id="cnnLinkText" data-lang-key="cnnLinkText">
+                CNN Fear & Greed Index
+            </a>
+            <!-- Removed Iframe for CNN Fear & Greed Chart as it refused to connect -->
+            <p class="text-sm text-gray-500 mt-2" data-lang-key="iframeNote">
+                Note: Direct embedding of the CNN Fear & Greed chart is prevented by their website's security policies. Please use the link above to view it.
+            </p>
+        </section>
+
+        <!-- Monthly Market Implications Section -->
+        <section class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4" id="monthlyTrendsHeader" data-lang-key="monthlyTrendsHeader">Monthly Market Trends (General Historical Implications)</h2>
+            <p class="text-gray-600 mb-6" id="monthlyTrendsSubtitle" data-lang-key="monthlyTrendsSubtitle">
+                Below are general historical tendencies for the S&P 500 and Nasdaq throughout the year.
+                These are averages and individual months can vary significantly due to current events.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="month-cards-container">
+                <!-- January -->
+                <div class="month-card p-6" data-month="0">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="januaryTitle">January</h3>
+                    <p class="text-base"><span class="positive-trend" data-lang-key="januaryTrend">Historically Positive:</span> <span data-lang-key="januaryDesc">Often sees a "January Effect."</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="januaryReason1">New year optimism & resolutions</li>
+                        <li data-lang-key="januaryReason2">Reinvestment of year-end bonuses</li>
+                        <li data-lang-key="januaryReason3">Buying after tax-loss selling in December</li>
+                        <li data-lang-key="januaryReason4">Post-holiday retail data influence</li>
+                    </ul>
+                </div>
+                <!-- February -->
+                <div class="month-card p-6" data-month="1">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="februaryTitle">February</h3>
+                    <p class="text-base"><span class="mixed-trend" data-lang-key="februaryTrend">Mixed/Slightly Positive:</span> <span data-lang-key="februaryDesc">Can be a quieter month.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="februaryReason1">Often follows January's momentum</li>
+                        <li data-lang-key="februaryReason2">Fewer major economic catalysts</li>
+                        <li data-lang-key="februaryReason3">Inflation data release (CPI)</li>
+                    </ul>
+                </div>
+                <!-- March -->
+                <div class="month-card p-6" data-month="2">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="marchTitle">March</h3>
+                    <p class="text-base"><span class="positive-trend" data-lang-key="marchTrend">Historically Positive:</span> <span data-lang-key="marchDesc">Often sees gains.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="marchReason1">Start of spring optimism</li>
+                        <li data-lang-key="marchReason2">Anticipation of Q1 earnings season</li>
+                        <li data-lang-key="marchReason3">Federal Reserve meeting (interest rate outlook)</li>
+                    </ul>
+                </div>
+                <!-- April -->
+                <div class="month-card p-6" data-month="3">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="aprilTitle">April</h3>
+                    <p class="text-base"><span class="positive-trend" data-lang-key="aprilTrend">Historically Strong:</span> <span data-lang-key="aprilDesc">Often one of the best months.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="aprilReason1">Strong Q1 earnings reports</li>
+                        <li data-lang-key="aprilReason2">Tax season ending (money flows back into market)</li>
+                        <li data-lang-key="aprilReason3">Start of new fiscal quarters for many companies</li>
+                    </ul>
+                </div>
+                <!-- May -->
+                <div class="month-card p-6" data-month="4">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="mayTitle">May</h3>
+                    <p class="text-base"><span class="mixed-trend" data-lang-key="mayTrend">Mixed/Slightly Positive:</span> <span data-lang-key="mayDesc">Part of "Sell in May" adage.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="mayReason1">Start of summer slowdown</li>
+                        <li data-lang-key="mayReason2">Investors taking profits after strong April</li>
+                        <li data-lang-key="mayReason3">Lower trading volumes around Memorial Day</li>
+                    </ul>
+                </div>
+                <!-- June -->
+                <div class="month-card p-6" data-month="5">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="juneTitle">June</h3>
+                    <p class="text-base"><span class="mixed-trend" data-lang-key="juneTrend">Mixed/Slightly Positive:</span> <span data-lang-key="juneDesc">Often continues summer lull.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="juneReason1">Lower trading volumes</li>
+                        <li data-lang-key="juneReason2">Uncertainty before Q2 earnings season begins</li>
+                        <li data-lang-key="juneReason3">Federal Reserve meeting</li>
+                    </ul>
+                </div>
+                <!-- July -->
+                <div class="month-card p-6" data-month="6">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="julyTitle">July</h3>
+                    <p class="text-base"><span class="positive-trend" data-lang-key="julyTrend">Historically Positive:</span> <span data-lang-key="julyDesc">Often sees positive returns.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="julyReason1">Early summer optimism</li>
+                        <li data-lang-key="julyReason2">Sometimes strong Q2 earnings reports</li>
+                        <li data-lang-key="julyReason3">"July Effect" for some asset classes</li>
+                    </ul>
+                </div>
+                <!-- August -->
+                <div class="month-card p-6" data-month="7">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="augustTitle">August</h3>
+                    <p class="text-base"><span class="mixed-trend" data-lang-key="augustTrend">Mixed/Flat:</span> <span data-lang-key="augustDesc">Can be a quieter month.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="augustReason1">Lower trading volumes (peak vacation season)</li>
+                        <li data-lang-key="augustReason2">Anticipation of September weakness</li>
+                        <li data-lang-key="augustReason3">Jackson Hole Economic Symposium</li>
+                    </ul>
+                </div>
+                <!-- September -->
+                <div class="month-card p-6" data-month="8">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="septemberTitle">September</h3>
+                    <p class="text-base"><span class="negative-trend" data-lang-key="septemberTrend">Historically Weakest:</span> <span data-lang-key="septemberDesc">Known as the weakest month.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="septemberReason1">Portfolio rebalancing & "window dressing"</li>
+                        <li data-lang-key="septemberReason2">Tax-loss selling</li>
+                        <li data-lang-key="septemberReason3">"Back-to-school" reality check for investors</li>
+                        <li data-lang-key="septemberReason4">Federal Reserve meeting</li>
+                    </ul>
+                </div>
+                <!-- October -->
+                <div class="month-card p-6" data-month="9">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="octoberTitle">October</h3>
+                    <p class="text-base"><span class="mixed-trend" data-lang-key="octoberTrend">Volatile but often Rebounds:</span> <span data-lang-key="octoberDesc">Can be highly volatile.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="octoberReason1">Historically associated with major market crashes (e.g., Black Monday 1987)</li>
+                        <li data-lang-key="octoberReason2">Often ends positive after September's weakness</li>
+                        <li data-lang-key="octoberReason3">Q3 earnings season in full swing</li>
+                    </ul>
+                </div>
+                <!-- November -->
+                <div class="month-card p-6" data-month="10">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="novemberTitle">November</h3>
+                    <p class="text-base"><span class="positive-trend" data-lang-key="novemberTrend">Historically Strong:</span> <span data-lang-key="novemberDesc">Kicks off the year-end rally.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="novemberReason1">Holiday season optimism</li>
+                        <li data-lang-key="novemberReason2">Increased consumer spending (Black Friday, Cyber Monday)</li>
+                        <li data-lang-key="novemberReason3">Post-election year bounce (if applicable)</li>
+                    </ul>
+                </div>
+                <!-- December -->
+                <div class="month-card p-6" data-month="11">
+                    <h3 class="text-xl font-semibold mb-2" data-lang-key="decemberTitle">December</h3>
+                    <p class="text-base"><span class="positive-trend" data-lang-key="decemberTrend">Historically Strong ("Santa Claus Rally"):</span> <span data-lang-key="decemberDesc">Typically a positive month.</span></p>
+                    <ul class="list-disc list-inside text-sm text-gray-500 mt-2 space-y-1">
+                        <li data-lang-key="decemberReason1">Holiday spending & cheer</li>
+                        <li data-lang-key="decemberReason2">Year-end bonuses & portfolio adjustments</li>
+                        <li data-lang-key="decemberReason3">Reduced institutional trading volume (allowing retail influence)</li>
+                        <li data-lang-key="decemberReason4">Final Federal Reserve meeting of the year</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monthly Performance Charts -->
+        <section class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4" id="chartHeader" data-lang-key="chartHeader">Estimated Average Monthly Returns (Past 30 Years)</h2>
+            <p class="text-gray-600 mb-4" id="chartSubtitle" data-lang-key="chartSubtitle">
+                These charts display *estimated* average monthly returns for the S&P 500 and Nasdaq over the past 30 years.
+                <strong id="chartNote" data-lang-key="chartNote">Note: These values are simplified for illustrative purposes and are not precise historical data.</strong>
+            </p>
+
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-700 mb-2" id="sp500ChartTitle" data-lang-key="sp500ChartTitle">S&P 500</h3>
+                <div class="chart-container">
+                    <svg id="sp500-chart" width="100%" height="100%" viewBox="0 0 500 250"></svg>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2" id="nasdaqChartTitle" data-lang-key="nasdaqChartTitle">Nasdaq</h3>
+                <div class="chart-container">
+                    <svg id="nasdaq-chart" width="100%" height="100%" viewBox="0 0 500 250"></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brief Glossary of Terms -->
+        <section class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4" id="glossaryHeader" data-lang-key="glossaryHeader">Brief Glossary of Market Terms</h2>
+            <dl class="space-y-4 text-gray-700">
+                <div>
+                    <dt class="font-semibold text-lg" id="glossaryJanEffectTitle" data-lang-key="glossaryJanEffectTitle">January Effect:</dt>
+                    <dd class="text-base ml-4" id="glossaryJanEffectDesc" data-lang-key="glossaryJanEffectDesc">A perceived seasonal anomaly where stock prices, particularly small-cap stocks, tend to rise in January, attributed to year-end tax-loss selling and subsequent reinvestment.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-lg" id="glossarySellMayTitle" data-lang-key="glossarySellMayTitle">Sell in May and Go Away:</dt>
+                    <dd class="text-base ml-4" id="glossarySellMayDesc" data-lang-key="glossarySellMayDesc">An old market adage suggesting that stock market returns tend to be weaker during the six-month period from May to October compared to November to April.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-lg" id="glossarySantaTitle" data-lang-key="glossarySantaTitle">Santa Claus Rally:</dt>
+                    <dd class="text-base ml-4" id="glossarySantaDesc" data-lang-key="glossarySantaDesc">A historical tendency for the stock market to rally during the last five trading days of December and the first two trading days of January, often attributed to holiday optimism, year-end bonuses, and lower trading volumes.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-lg" id="glossaryTaxLossTitle" data-lang-key="glossaryTaxLossTitle">Tax-Loss Selling:</dt>
+                    <dd class="text-base ml-4" id="glossaryTaxLossDesc" data-lang-key="glossaryTaxLossDesc">The practice of selling investments at a loss to offset capital gains and reduce tax liability, typically done towards the end of the year (e.g., in September or December).</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-lg" id="glossaryWindowTitle" data-lang-key="glossaryWindowTitle">Window Dressing:</dt>
+                    <dd class="text-base ml-4" id="glossaryWindowDesc" data-lang-key="glossaryWindowDesc">A strategy used by mutual fund and portfolio managers near the end of a quarter or year to improve the appearance of their portfolio before presenting it to clients or shareholders. This often involves selling losing stocks and buying well-performing ones.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-lg" id="glossaryFOMCTitle" data-lang-key="glossaryFOMCTitle">FOMC Meeting:</dt>
+                    <dd class="text-base ml-4" id="glossaryFOMCDesc" data-lang-key="glossaryFOMCDesc">Refers to meetings of the Federal Open Market Committee, the monetary policy-making body of the Federal Reserve System in the United States, where decisions on interest rates are made.</dd>
+                </div>
+            </dl>
+        </section>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                pageTitle: "US Stock Market Seasonal Guide & Sentiment Memo",
+                headerTitle: "US Stock Market Seasonal Memo",
+                headerSubtitle: "A personal reference for general monthly market trends and sentiment.",
+                sentimentHeader: "Current Market Sentiment Indicator",
+                sentimentText: "For the latest CNN Fear & Greed Index, please visit:",
+                cnnLinkText: "CNN Fear & Greed Index",
+                iframeNote: "Note: Direct embedding of the CNN Fear & Greed chart is prevented by their website's security policies. Please use the link above to view it.",
+                monthlyTrendsHeader: "Monthly Market Trends (General Historical Implications)",
+                monthlyTrendsSubtitle: "Below are general historical tendencies for the S&P 500 and Nasdaq throughout the year. These are averages and individual months can vary significantly due to current events.",
+                januaryTitle: "January",
+                januaryTrend: "Historically Positive:",
+                januaryDesc: "Often sees a \"January Effect.\"",
+                januaryReason1: "New year optimism & resolutions",
+                januaryReason2: "Reinvestment of year-end bonuses",
+                januaryReason3: "Buying after tax-loss selling in December",
+                januaryReason4: "Post-holiday retail data influence",
+                februaryTitle: "February",
+                februaryTrend: "Mixed/Slightly Positive:",
+                februaryDesc: "Can be a quieter month.",
+                februaryReason1: "Often follows January's momentum",
+                februaryReason2: "Fewer major economic catalysts",
+                februaryReason3: "Inflation data release (CPI)",
+                marchTitle: "March",
+                marchTrend: "Historically Positive:",
+                marchDesc: "Often sees gains.",
+                marchReason1: "Start of spring optimism",
+                marchReason2: "Anticipation of Q1 earnings season",
+                marchReason3: "Federal Reserve meeting (interest rate outlook)",
+                aprilTitle: "April",
+                aprilTrend: "Historically Strong:",
+                aprilDesc: "Often one of the best months.",
+                aprilReason1: "Strong Q1 earnings reports",
+                aprilReason2: "Tax season ending (money flows back into market)",
+                aprilReason3: "Start of new fiscal quarters for many companies",
+                mayTitle: "May",
+                mayTrend: "Mixed/Slightly Positive:",
+                mayDesc: "Part of \"Sell in May\" adage.",
+                mayReason1: "Start of summer slowdown",
+                mayReason2: "Investors taking profits after strong April",
+                mayReason3: "Lower trading volumes around Memorial Day",
+                juneTitle: "June",
+                juneTrend: "Mixed/Slightly Positive:",
+                juneDesc: "Often continues summer lull.",
+                juneReason1: "Lower trading volumes",
+                juneReason2: "Uncertainty before Q2 earnings season begins",
+                juneReason3: "Federal Reserve meeting",
+                julyTitle: "July",
+                julyTrend: "Historically Positive:",
+                julyDesc: "Often sees positive returns.",
+                julyReason1: "Early summer optimism",
+                julyReason2: "Sometimes strong Q2 earnings reports",
+                julyReason3: "\"July Effect\" for some asset classes",
+                augustTitle: "August",
+                augustTrend: "Mixed/Flat:",
+                augustDesc: "Can be a quieter month.",
+                augustReason1: "Lower trading volumes (peak vacation season)",
+                augustReason2: "Anticipation of September weakness",
+                augustReason3: "Jackson Hole Economic Symposium",
+                septemberTitle: "September",
+                septemberTrend: "Historically Weakest:",
+                septemberDesc: "Known as the weakest month.",
+                septemberReason1: "Portfolio rebalancing & \"window dressing\"",
+                septemberReason2: "Tax-loss selling",
+                septemberReason3: "\"Back-to-school\" reality check for investors",
+                septemberReason4: "Federal Reserve meeting",
+                octoberTitle: "October",
+                octoberTrend: "Volatile but often Rebounds:",
+                octoberDesc: "Can be highly volatile.",
+                octoberReason1: "Historically associated with major market crashes (e.g., Black Monday 1987)",
+                octoberReason2: "Often ends positive after September's weakness",
+                octoberReason3: "Q3 earnings season in full swing",
+                novemberTitle: "November",
+                novemberTrend: "Historically Strong:",
+                novemberDesc: "Kicks off the year-end rally.",
+                novemberReason1: "Holiday season optimism",
+                novemberReason2: "Increased consumer spending (Black Friday, Cyber Monday)",
+                novemberReason3: "Post-election year bounce (if applicable)",
+                decemberTitle: "December",
+                decemberTrend: "Historically Strong (\"Santa Claus Rally\"):",
+                decemberDesc: "Typically a positive month.",
+                decemberReason1: "Holiday spending & cheer",
+                decemberReason2: "Year-end bonuses & portfolio adjustments",
+                decemberReason3: "Reduced institutional trading volume (allowing retail influence)",
+                decemberReason4: "Final Federal Reserve meeting of the year",
+                chartHeader: "Estimated Average Monthly Returns (Past 30 Years)",
+                chartSubtitle: "These charts display *estimated* average monthly returns for the S&P 500 and Nasdaq over the past 30 years.",
+                chartNote: "Note: These values are simplified for illustrative purposes and are not precise historical data.",
+                sp500ChartTitle: "S&P 500",
+                nasdaqChartTitle: "Nasdaq",
+                glossaryHeader: "Brief Glossary of Market Terms",
+                glossaryJanEffectTitle: "January Effect:",
+                glossaryJanEffectDesc: "A perceived seasonal anomaly where stock prices, particularly small-cap stocks, tend to rise in January, attributed to year-end tax-loss selling and subsequent reinvestment.",
+                glossarySellMayTitle: "Sell in May and Go Away:",
+                glossarySellMayDesc: "An old market adage suggesting that stock market returns tend to be weaker during the six-month period from May to October compared to November to April.",
+                glossarySantaTitle: "Santa Claus Rally:",
+                glossarySantaDesc: "A historical tendency for the stock market to rally during the last five trading days of December and the first two trading days of January, often attributed to holiday optimism, year-end bonuses, and lower trading volumes.",
+                glossaryTaxLossTitle: "Tax-Loss Selling:",
+                glossaryTaxLossDesc: "The practice of selling investments at a loss to offset capital gains and reduce tax liability, typically done towards the end of the year (e.g., in September or December).",
+                glossaryWindowTitle: "Window Dressing:",
+                glossaryWindowDesc: "A strategy used by mutual fund and portfolio managers near the end of a quarter or year to improve the appearance of their portfolio before presenting it to clients or shareholders. This often involves selling losing stocks and buying well-performing ones.",
+                glossaryFOMCTitle: "FOMC Meeting:",
+                glossaryFOMCDesc: "Refers to meetings of the Federal Open Market Committee, the monetary policy-making body of the Federal Reserve System in the United States, where decisions on interest rates are made."
+            },
+            zh: {
+                pageTitle: "美國股市季節性指南與情緒備忘錄",
+                headerTitle: "美國股市季節性備忘錄",
+                headerSubtitle: "一份關於月度市場趨勢和情緒的個人參考。",
+                sentimentHeader: "當前市場情緒指標",
+                sentimentText: "要查看最新的CNN恐懼與貪婪指數，請訪問：",
+                cnnLinkText: "CNN恐懼與貪婪指數",
+                iframeNote: "注意：由於外部網站安全政策，此處無法直接嵌入CNN恐懼與貪婪圖表。請使用上方連結查看。",
+                monthlyTrendsHeader: "月度市場趨勢（一般歷史含義）",
+                monthlyTrendsSubtitle: "以下是標準普爾500指數和納斯達克指數全年的一般歷史趨勢。這些是平均值，個別月份可能因當前事件而顯著變化。",
+                januaryTitle: "一月",
+                januaryTrend: "歷史性積極：",
+                januaryDesc: "通常出現“一月效應”。",
+                januaryReason1: "新年樂觀情緒和決心",
+                januaryReason2: "年終獎金再投資",
+                januaryReason3: "12月稅損拋售後買入",
+                januaryReason4: "節後零售數據影響",
+                februaryTitle: "二月",
+                februaryTrend: "混合/略微積極：",
+                februaryDesc: "可能是一個較平靜的月份。",
+                februaryReason1: "通常跟隨一月勢頭",
+                februaryReason2: "主要經濟催化劑較少",
+                februaryReason3: "通脹數據發布 (CPI)",
+                marchTitle: "三月",
+                marchTrend: "歷史性積極：",
+                marchDesc: "通常出現上漲。",
+                marchReason1: "春季樂觀情緒開始",
+                marchReason2: "第一季度財報季預期",
+                marchReason3: "美聯儲會議（利率展望）",
+                aprilTitle: "四月",
+                aprilTrend: "歷史性強勢：",
+                aprilDesc: "通常是表現最好的月份之一。",
+                aprilReason1: "強勁的第一季度財報",
+                aprilReason2: "報稅季結束（資金回流市場）",
+                aprilReason3: "許多公司新財季開始",
+                mayTitle: "五月",
+                mayTrend: "混合/略微積極：",
+                mayDesc: "“五月賣出”諺語的一部分。",
+                mayReason1: "夏季放緩開始",
+                mayReason2: "投資者在四月強勁表現後獲利了結",
+                mayReason3: "交易量較低（陣亡將士紀念日期間）",
+                juneTitle: "六月",
+                juneTrend: "混合/略微積極：",
+                juneDesc: "通常延續夏季低迷。",
+                juneReason1: "交易量較低",
+                juneReason2: "第二季度財報季開始前的不確定性",
+                juneReason3: "美聯儲會議",
+                julyTitle: "七月",
+                julyTrend: "歷史性積極：",
+                julyDesc: "通常出現積極回報。",
+                julyReason1: "初夏樂觀情緒",
+                julyReason2: "有時第二季度財報強勁",
+                julyReason3: "某些資產類別的“七月效應”",
+                augustTitle: "八月",
+                augustTrend: "混合/持平：",
+                augustDesc: "可能是一個較平靜的月份。",
+                augustReason1: "交易量較低（度假高峰期）",
+                augustReason2: "對九月疲軟的預期",
+                augustReason3: "傑克遜霍爾經濟研討會",
+                septemberTitle: "九月",
+                septemberTrend: "歷史性最弱：",
+                septemberDesc: "被稱為最弱的月份。",
+                septemberReason1: "投資組合再平衡和“粉飾櫥窗”",
+                septemberReason2: "稅損拋售",
+                septemberReason3: "投資者“返校”現實檢驗",
+                septemberReason4: "美聯儲會議",
+                octoberTitle: "十月",
+                octoberTrend: "波動但常反彈：",
+                octoberDesc: "可能波動性很大。",
+                octoberReason1: "歷史上與重大市場崩盤相關（例如1987年黑色星期一）",
+                octoberReason2: "通常在九月疲軟後結束積極",
+                octoberReason3: "第三季度財報季全面展開",
+                novemberTitle: "十一月",
+                novemberTrend: "歷史性強勢：",
+                novemberDesc: "開啟年終漲勢。",
+                novemberReason1: "假日季節樂觀情緒",
+                novemberReason2: "消費支出增加（黑色星期五，網絡星期一）",
+                novemberReason3: "選舉後年份反彈（如果適用）",
+                decemberTitle: "十二月",
+                decemberTrend: "歷史性強勢（“聖誕老人行情”）:",
+                decemberDesc: "通常是積極的月份。",
+                decemberReason1: "假日消費和歡樂",
+                decemberReason2: "年終獎金和投資組合調整",
+                decemberReason3: "機構交易量減少（允許散戶影響）",
+                decemberReason4: "本年度最後一次美聯儲會議",
+                chartHeader: "月度平均回報估算（過去30年）",
+                chartSubtitle: "這些圖表顯示了標準普爾500指數和納斯達克指數過去30年的*估算*月度平均回報。",
+                chartNote: "注意：這些值是為說明目的而簡化的，並非精確的歷史數據。",
+                sp500ChartTitle: "標準普爾500指數",
+                nasdaqChartTitle: "納斯達克指數",
+                glossaryHeader: "市場術語簡明詞彙表",
+                glossaryJanEffectTitle: "一月效應：",
+                glossaryJanEffectDesc: "一種感知到的季節性異常現象，即股價（尤其是小盤股）在一月傾向於上漲，這歸因於年終稅損拋售和隨後的再投資。",
+                glossarySellMayTitle: "五月賣出，然後離開：",
+                glossarySellMayDesc: "一句古老的市場格言，暗示從五月到十月的六個月期間，股市回報往往弱於十一月到四月。",
+                glossarySantaTitle: "聖誕老人行情：",
+                glossarySantaDesc: "股市在十二月最後五個交易日到一月前兩個交易日上漲的歷史趨勢，通常歸因於節日樂觀情緒、年終獎金和較低的交易量。",
+                glossaryTaxLossTitle: "稅損拋售：",
+                glossaryTaxLossDesc: "出售虧損投資以抵消資本收益並減少稅負的做法，通常在年底（例如九月或十二月）進行。",
+                glossaryWindowTitle: "粉飾櫥窗：",
+                glossaryWindowDesc: "共同基金和投資組合經理在季度或年末採用的一種策略，以改善其投資組合的外觀，然後向客戶或股東展示。這通常涉及出售虧損股票並購買表現良好的股票。",
+                glossaryFOMCTitle: "聯邦公開市場委員會（FOMC）會議：",
+                glossaryFOMCDesc: "指美國聯邦儲備系統貨幣政策制定機構聯邦公開市場委員會的會議，在此會議上做出利率決定。"
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'en'; // Get stored language or default to English
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang); // Save language preference
+
+            // Update main page title and header
+            const pageTitleEl = document.getElementById('page-title');
+            if (pageTitleEl) pageTitleEl.textContent = translations[lang].pageTitle;
+
+            const headerTitleEl = document.getElementById('headerTitle');
+            if (headerTitleEl) headerTitleEl.textContent = translations[lang].headerTitle;
+
+            const headerSubtitleEl = document.getElementById('headerSubtitle');
+            if (headerSubtitleEl) headerSubtitleEl.textContent = translations[lang].headerSubtitle;
+
+            // Update sentiment section
+            const sentimentHeaderEl = document.getElementById('sentimentHeader');
+            if (sentimentHeaderEl) sentimentHeaderEl.textContent = translations[lang].sentimentHeader;
+
+            const sentimentTextEl = document.getElementById('sentimentText');
+            if (sentimentTextEl) sentimentTextEl.textContent = translations[lang].sentimentText;
+
+            const cnnLinkTextEl = document.getElementById('cnnLinkText');
+            if (cnnLinkTextEl) cnnLinkTextEl.textContent = translations[lang].cnnLinkText;
+
+            const iframeNoteEl = document.getElementById('iframeNote');
+            if (iframeNoteEl) iframeNoteEl.textContent = translations[lang].iframeNote;
+
+            // Update monthly trends section header and subtitle
+            const monthlyTrendsHeaderEl = document.getElementById('monthlyTrendsHeader');
+            if (monthlyTrendsHeaderEl) monthlyTrendsHeaderEl.textContent = translations[lang].monthlyTrendsHeader;
+
+            const monthlyTrendsSubtitleEl = document.getElementById('monthlyTrendsSubtitle');
+            if (monthlyTrendsSubtitleEl) monthlyTrendsSubtitleEl.textContent = translations[lang].monthlyTrendsSubtitle;
+
+            // Update month cards
+            const monthData = [
+                { id: 'january', title: 'januaryTitle', trend: 'januaryTrend', desc: 'januaryDesc', reasons: ['januaryReason1', 'januaryReason2', 'januaryReason3', 'januaryReason4'] },
+                { id: 'february', title: 'februaryTitle', trend: 'februaryTrend', desc: 'februaryDesc', reasons: ['februaryReason1', 'februaryReason2', 'februaryReason3'] },
+                { id: 'march', title: 'marchTitle', trend: 'marchTrend', desc: 'marchDesc', reasons: ['marchReason1', 'marchReason2', 'marchReason3'] },
+                { id: 'april', title: 'aprilTitle', trend: 'aprilTrend', desc: 'aprilDesc', reasons: ['aprilReason1', 'aprilReason2', 'aprilReason3'] },
+                { id: 'may', title: 'mayTitle', trend: 'mayTrend', desc: 'mayDesc', reasons: ['mayReason1', 'mayReason2', 'mayReason3'] },
+                { id: 'june', title: 'juneTitle', trend: 'juneTrend', desc: 'juneDesc', reasons: ['juneReason1', 'juneReason2', 'juneReason3'] },
+                { id: 'july', title: 'julyTitle', trend: 'julyTrend', desc: 'julyDesc', reasons: ['julyReason1', 'julyReason2', 'julyReason3'] },
+                { id: 'august', title: 'augustTitle', trend: 'augustTrend', desc: 'augustDesc', reasons: ['augustReason1', 'augustReason2', 'augustReason3'] },
+                { id: 'september', title: 'septemberTitle', trend: 'septemberTrend', desc: 'septemberDesc', reasons: ['septemberReason1', 'septemberReason2', 'septemberReason3', 'septemberReason4'] },
+                { id: 'october', title: 'octoberTitle', trend: 'octoberTrend', desc: 'octoberDesc', reasons: ['octoberReason1', 'octoberReason2', 'octoberReason3'] },
+                { id: 'november', title: 'novemberTitle', trend: 'novemberTrend', desc: 'novemberDesc', reasons: ['novemberReason1', 'novemberReason2', 'novemberReason3'] },
+                { id: 'december', title: 'decemberTitle', trend: 'decemberTrend', desc: 'decemberDesc', reasons: ['decemberReason1', 'decemberReason2', 'decemberReason3', 'decemberReason4'] }
+            ];
+
+            monthData.forEach((month, index) => {
+                const card = document.querySelector(`.month-card[data-month="${index}"]`);
+                if (card) {
+                    const h3El = card.querySelector('h3');
+                    if (h3El) h3El.textContent = translations[lang][month.title];
+
+                    const trendSpan = card.querySelector(`p.text-base span[data-lang-key="${month.trend}"]`);
+                    if (trendSpan) {
+                        trendSpan.textContent = translations[lang][month.trend];
+                    }
+
+                    const descSpan = card.querySelector(`p.text-base span[data-lang-key="${month.desc}"]`);
+                    if (descSpan) {
+                        descSpan.textContent = translations[lang][month.desc];
+                    }
+
+                    const ul = card.querySelector('ul');
+                    if (ul) {
+                        ul.innerHTML = ''; // Clear existing list items
+                        month.reasons.forEach(reasonKey => {
+                            const li = document.createElement('li');
+                            li.textContent = translations[lang][reasonKey];
+                            ul.appendChild(li);
+                        });
+                    }
+                }
+            });
+
+            // Update chart section headers
+            const chartHeaderEl = document.getElementById('chartHeader');
+            if (chartHeaderEl) chartHeaderEl.textContent = translations[lang].chartHeader;
+
+            const chartSubtitleEl = document.getElementById('chartSubtitle');
+            if (chartSubtitleEl) chartSubtitleEl.textContent = translations[lang].chartSubtitle;
+
+            const chartNoteEl = document.getElementById('chartNote');
+            if (chartNoteEl) chartNoteEl.textContent = translations[lang].chartNote;
+
+            const sp500ChartTitleEl = document.getElementById('sp500ChartTitle');
+            if (sp500ChartTitleEl) sp500ChartTitleEl.textContent = translations[lang].sp500ChartTitle;
+
+            const nasdaqChartTitleEl = document.getElementById('nasdaqChartTitle');
+            if (nasdaqChartTitleEl) nasdaqChartTitleEl.textContent = translations[lang].nasdaqChartTitle;
+
+            // Update glossary section
+            const glossaryHeaderEl = document.getElementById('glossaryHeader');
+            if (glossaryHeaderEl) glossaryHeaderEl.textContent = translations[lang].glossaryHeader;
+
+            const glossaryJanEffectTitleEl = document.getElementById('glossaryJanEffectTitle');
+            if (glossaryJanEffectTitleEl) glossaryJanEffectTitleEl.textContent = translations[lang].glossaryJanEffectTitle;
+            const glossaryJanEffectDescEl = document.getElementById('glossaryJanEffectDesc');
+            if (glossaryJanEffectDescEl) glossaryJanEffectDescEl.textContent = translations[lang].glossaryJanEffectDesc;
+
+            const glossarySellMayTitleEl = document.getElementById('glossarySellMayTitle');
+            if (glossarySellMayTitleEl) glossarySellMayTitleEl.textContent = translations[lang].glossarySellMayTitle;
+            const glossarySellMayDescEl = document.getElementById('glossarySellMayDesc');
+            if (glossarySellMayDescEl) glossarySellMayDescEl.textContent = translations[lang].glossarySellMayDesc;
+
+            const glossarySantaTitleEl = document.getElementById('glossarySantaTitle');
+            if (glossarySantaTitleEl) glossarySantaTitleEl.textContent = translations[lang].glossarySantaTitle;
+            const glossarySantaDescEl = document.getElementById('glossarySantaDesc');
+            if (glossarySantaDescEl) glossarySantaDescEl.textContent = translations[lang].glossarySantaDesc;
+
+            const glossaryTaxLossTitleEl = document.getElementById('glossaryTaxLossTitle');
+            if (glossaryTaxLossTitleEl) glossaryTaxLossTitleEl.textContent = translations[lang].glossaryTaxLossTitle;
+            const glossaryTaxLossDescEl = document.getElementById('glossaryTaxLossDesc');
+            if (glossaryTaxLossDescEl) glossaryTaxLossDescEl.textContent = translations[lang].glossaryTaxLossDesc;
+
+            const glossaryWindowTitleEl = document.getElementById('glossaryWindowTitle');
+            if (glossaryWindowTitleEl) glossaryWindowTitleEl.textContent = translations[lang].glossaryWindowTitle;
+            const glossaryWindowDescEl = document.getElementById('glossaryWindowDesc');
+            if (glossaryWindowDescEl) glossaryWindowDescEl.textContent = translations[lang].glossaryWindowDesc;
+
+            const glossaryFOMCTitleEl = document.getElementById('glossaryFOMCTitle');
+            if (glossaryFOMCTitleEl) glossaryFOMCTitleEl.textContent = translations[lang].glossaryFOMCTitle;
+            const glossaryFOMCDescEl = document.getElementById('glossaryFOMCDesc');
+            if (glossaryFOMCDescEl) glossaryFOMCDescEl.textContent = translations[lang].glossaryFOMCDesc;
+
+            // Update active button state
+            document.getElementById('lang-en').classList.remove('active');
+            document.getElementById('lang-zh').classList.remove('active');
+            document.getElementById(`lang-${lang}`).classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Highlight current month's card
+            const currentMonthIndex = new Date().getMonth(); // 0 for January, 11 for December
+            const monthCards = document.querySelectorAll('.month-card');
+            monthCards.forEach(card => {
+                if (parseInt(card.dataset.month) === currentMonthIndex) {
+                    card.classList.add('current-month');
+                }
+            });
+
+            // Estimated Average Monthly Returns (Past 30 Years)
+            // These values are simplified for illustrative purposes and are not precise historical data.
+            const sp500Returns = [
+                { month: 'Jan', value: 1.5 }, // January Effect
+                { month: 'Feb', value: 0.5 },
+                { month: 'Mar', value: 1.0 },
+                { month: 'Apr', value: 1.8 }, // Historically Strong
+                { month: 'May', value: 0.2 }, // "Sell in May"
+                { month: 'Jun', value: 0.1 },
+                { month: 'Jul', value: 1.0 },
+                { month: 'Aug', value: -0.1 }, // Summer Lull
+                { month: 'Sep', value: -0.5 }, // Historically Weakest
+                { month: 'Oct', value: 0.8 }, // Volatile but Rebounds
+                { month: 'Nov', value: 1.3 }, // Historically Strong
+                { month: 'Dec', value: 1.5 }  // Santa Claus Rally
+            ];
+
+            const nasdaqReturns = [
+                { month: 'Jan', value: 2.0 }, // Stronger January Effect for tech
+                { month: 'Feb', value: 0.8 },
+                { month: 'Mar', value: 1.2 },
+                { month: 'Apr', value: 2.2 }, // Stronger for tech
+                { month: 'May', value: 0.3 },
+                { month: 'Jun', value: 0.2 },
+                { month: 'Jul', value: 1.2 },
+                { month: 'Aug', value: 0.0 }, // Can be flat
+                { month: 'Sep', value: -0.8 }, // Often weaker for tech
+                { month: 'Oct', value: 1.0 },
+                { month: 'Nov', value: 1.8 }, // Stronger for tech
+                { month: 'Dec', value: 2.0 }  // Stronger Santa Claus Rally for tech
+            ];
+
+            // Identify best and worst months
+            const getBestWorstMonths = (data) => {
+                let bestMonth = data[0];
+                let worstMonth = data[0];
+                data.forEach(m => {
+                    if (m.value > bestMonth.value) bestMonth = m;
+                    if (m.value < worstMonth.value) worstMonth = m;
+                });
+                return { best: bestMonth, worst: worstMonth };
+            };
+
+            const sp500Extremes = getBestWorstMonths(sp500Returns);
+            const nasdaqExtremes = getBestWorstMonths(nasdaqReturns);
+
+            // Add best/worst month classes to cards
+            monthCards.forEach(card => {
+                // Get month name from data-lang-key to ensure it's consistent across languages for comparison
+                const monthNameKey = card.querySelector('h3').dataset.langKey;
+                const currentMonthName = translations['en'][monthNameKey]; // Use English name for comparison with data arrays
+
+                // Check if the month is the best or worst for either index
+                const isBest = (currentMonthName === sp500Extremes.best.month || currentMonthName === nasdaqExtremes.best.month);
+                const isWorst = (currentMonthName === sp500Extremes.worst.month || currentMonthName === nasdaqExtremes.worst.month);
+
+                // Apply classes, ensuring "best" overrides "worst" if a month is both (unlikely with this data)
+                // and that "current-month" is preserved if applicable.
+                if (isBest) {
+                    card.classList.add('best-month');
+                    card.classList.remove('worst-month'); // Ensure no conflict
+                } else if (isWorst) {
+                    card.classList.add('worst-month');
+                    card.classList.remove('best-month'); // Ensure no conflict
+                } else {
+                    card.classList.remove('best-month', 'worst-month');
+                }
+            });
+
+
+            // Function to draw a bar chart
+            function drawBarChart(elementId, data) {
+                const svg = document.getElementById(elementId);
+                if (!svg) return;
+                svg.innerHTML = ''; // Clear previous chart
+
+                const width = 500;
+                const height = 250;
+                const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+                const chartWidth = width - margin.left - margin.right;
+                const chartHeight = height - margin.top - margin.bottom;
+
+                // Create a group for the chart content
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+                svg.appendChild(g);
+
+                // Calculate scales
+                const xBandwidth = chartWidth / data.length;
+                const yMin = Math.min(0, ...data.map(d => d.value));
+                const yMax = Math.max(0, ...data.map(d => d.value));
+
+                const yScale = (value) => chartHeight - ((value - yMin) / (yMax - yMin)) * chartHeight;
+                const yAxisZero = yScale(0); // Y-position of the zero line
+
+                data.forEach((d, i) => {
+                    const x = i * xBandwidth;
+                    const barWidth = xBandwidth * 0.8; // Use 80% of the allocated space for the bar
+                    const barX = x + (xBandwidth - barWidth) / 2; // Center the bar within its slot
+
+                    const barHeight = Math.abs(yScale(d.value) - yAxisZero);
+                    const barY = d.value >= 0 ? yScale(d.value) : yAxisZero; // Bars go up from zero for positive, down for negative
+
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', barX);
+                    rect.setAttribute('y', barY);
+                    rect.setAttribute('width', barWidth);
+                    rect.setAttribute('height', barHeight);
+                    rect.setAttribute('class', `bar ${d.value >= 0 ? 'positive' : 'negative'}`);
+                    g.appendChild(rect);
+
+                    // Add value label (percentage)
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x + xBandwidth / 2); // Center text within the slot
+                    text.setAttribute('class', 'bar-label');
+                    text.textContent = `${d.value.toFixed(1)}%`;
+
+                    // Position text based on positive/negative value
+                    if (d.value >= 0) {
+                        text.setAttribute('y', yScale(d.value) - 5); // Above the bar
+                    } else {
+                        // Position slightly below the zero line for negative values
+                        text.setAttribute('y', yAxisZero + 10);
+                    }
+                    g.appendChild(text);
+
+                    // Add month label
+                    const monthText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    monthText.setAttribute('x', x + xBandwidth / 2); // Center text within the slot
+                    monthText.setAttribute('y', chartHeight + 15); // Below the x-axis
+                    monthText.setAttribute('class', 'axis-label');
+                    monthText.textContent = d.month;
+                    g.appendChild(monthText);
+                });
+
+                // Draw zero line
+                const zeroLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                zeroLine.setAttribute('x1', 0);
+                zeroLine.setAttribute('y1', yAxisZero);
+                zeroLine.setAttribute('x2', chartWidth);
+                zeroLine.setAttribute('y2', yAxisZero);
+                zeroLine.setAttribute('stroke', '#cbd5e1');
+                zeroLine.setAttribute('stroke-dasharray', '2 2');
+                g.appendChild(zeroLine);
+
+                // Add Y-axis labels (min, max, zero)
+                const yAxisMinLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                yAxisMinLabel.setAttribute('x', -5);
+                yAxisMinLabel.setAttribute('y', yScale(yMin) + 5);
+                yAxisMinLabel.setAttribute('text-anchor', 'end');
+                yAxisMinLabel.setAttribute('class', 'axis-label');
+                yAxisMinLabel.textContent = `${yMin.toFixed(1)}%`;
+                g.appendChild(yAxisMinLabel);
+
+                const yAxisMaxLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                yAxisMaxLabel.setAttribute('x', -5);
+                yAxisMaxLabel.setAttribute('y', yScale(yMax) + 5);
+                yAxisMaxLabel.setAttribute('text-anchor', 'end');
+                yAxisMaxLabel.setAttribute('class', 'axis-label');
+                yAxisMaxLabel.textContent = `${yMax.toFixed(1)}%`;
+                g.appendChild(yAxisMaxLabel);
+
+                if (yMin < 0 && yMax > 0) { // Only draw zero label if it's not min/max
+                    const yAxisZeroLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    yAxisZeroLabel.setAttribute('x', -5);
+                    yAxisZeroLabel.setAttribute('y', yAxisZero + 5);
+                    yAxisZeroLabel.setAttribute('text-anchor', 'end');
+                    yAxisZeroLabel.setAttribute('class', 'axis-label');
+                    yAxisZeroLabel.textContent = '0%';
+                    g.appendChild(yAxisZeroLabel);
+                }
+            }
+
+            // Draw charts on load
+            drawBarChart('sp500-chart', sp500Returns);
+            drawBarChart('nasdaq-chart', nasdaqReturns);
+
+            // Language switch buttons
+            document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+            document.getElementById('lang-zh').addEventListener('click', () => setLanguage('zh'));
+
+            // Set initial language
+            setLanguage(currentLang);
+        });
+    </script>
+</body>
+</html>
